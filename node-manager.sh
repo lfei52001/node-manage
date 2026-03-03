@@ -115,10 +115,10 @@ choose_server_addr() {
 }
 
 get_status() {
-    local label="$1" service="$2"
+    local label="$1" service="$2" bin="$3"
     if systemctl is-active --quiet "$service" 2>/dev/null; then
         echo -e "  ${label}: ${GREEN}● 运行中${NC}"
-    elif systemctl list-unit-files 2>/dev/null | grep -q "^${service}"; then
+    elif [[ -f "$bin" ]]; then
         echo -e "  ${label}: ${RED}● 已停止${NC}"
     else
         echo -e "  ${label}: ${YELLOW}● 未安装${NC}"
@@ -929,6 +929,33 @@ delete_script() {
 }
 
 # ============================================================
+# 快捷命令安装/卸载（输入 n 调出脚本）
+# ============================================================
+
+install_shortcut() {
+    local script_path
+    script_path=$(realpath "$0" 2>/dev/null || echo "$0")
+    local shortcut="/usr/local/bin/n"
+
+    # 创建全局命令 n
+    cat > "$shortcut" <<EOF
+#!/bin/bash
+exec bash "${script_path}"
+EOF
+    chmod +x "$shortcut"
+    success "快捷命令已安装！现在可在任意位置输入 ${BOLD}n${NC} 来调出节点管理脚本。"
+}
+
+remove_shortcut() {
+    if [[ -f /usr/local/bin/n ]]; then
+        rm -f /usr/local/bin/n
+        success "快捷命令 n 已移除。"
+    else
+        warn "快捷命令 n 不存在，无需移除。"
+    fi
+}
+
+# ============================================================
 # 主菜单
 # ============================================================
 
@@ -941,28 +968,45 @@ main_menu() {
         echo -e "${BOLD}${BLUE}  ║       Debian 12 / Ubuntu 22.04+            ║${NC}"
         echo -e "${BOLD}${BLUE}  ╚════════════════════════════════════════════╝${NC}"
         echo ""
-        get_status "Hysteria 2      " "$HY2_SERVICE"
-        get_status "Reality (Xray)  " "xray"
-        get_status "Shadowsocks-Rust" "$SS_SERVICE"
+        get_status "Hysteria 2      " "$HY2_SERVICE" "$HY2_BIN"
+        get_status "Reality (Xray)  " "xray" "$XRAY_BIN"
+        get_status "Shadowsocks-Rust" "$SS_SERVICE" "$SS_BIN"
+        echo ""
+        # 快捷命令状态
+        if [[ -f /usr/local/bin/n ]]; then
+            echo -e "  快捷命令 ${BOLD}n${NC}: ${GREEN}● 已安装${NC}"
+        else
+            echo -e "  快捷命令 ${BOLD}n${NC}: ${YELLOW}● 未安装${NC}"
+        fi
         echo ""
         echo -e "  ${BOLD}1.${NC} 一键搭建 Hysteria 2 节点"
         echo -e "  ${BOLD}2.${NC} 一键搭建 Reality 节点"
         echo -e "  ${BOLD}3.${NC} 一键搭建 Shadowsocks-Rust 节点"
         echo -e "  ${BOLD}4.${NC} 退出脚本"
         echo -e "  ${BOLD}5.${NC} 删除脚本"
+        echo -e "  ${BOLD}6.${NC} 安装快捷命令 n"
+        echo -e "  ${BOLD}7.${NC} 卸载快捷命令 n"
         echo ""
         echo -e "${BLUE}════════════════════════════════════════════════${NC}"
-        read -rp "$(echo -e "${CYAN}请输入选项 [1-5]:${NC} ")" CHOICE
+        read -rp "$(echo -e "${CYAN}请输入选项 [1-7]:${NC} ")" CHOICE
         case "$CHOICE" in
             1) hy2_menu     ;;
             2) reality_menu ;;
             3) ss_menu      ;;
             4) echo ""; info "已退出脚本，再见！"; echo ""; exit 0 ;;
             5) delete_script ;;
-            *) warn "无效选项，请输入 1-5"; sleep 1 ;;
+            6) install_shortcut; press_enter ;;
+            7) remove_shortcut;  press_enter ;;
+            *) warn "无效选项，请输入 1-7"; sleep 1 ;;
         esac
     done
 }
 
 check_root
+
+# 首次运行时自动安装快捷命令 n
+if [[ ! -f /usr/local/bin/n ]]; then
+    install_shortcut
+fi
+
 main_menu
