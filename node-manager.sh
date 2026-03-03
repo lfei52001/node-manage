@@ -916,13 +916,15 @@ delete_script() {
     echo ""
     echo -e "${BOLD}${RED}═══════════ 删除脚本 ═══════════${NC}"
     echo ""
-    local SCRIPT_PATH; SCRIPT_PATH=$(realpath "$0" 2>/dev/null || echo "$0")
-    info "脚本路径: ${SCRIPT_PATH}"
+    info "将删除以下文件："
+    [[ -f "$NODE_SCRIPT"   ]] && echo -e "  ${NODE_SCRIPT}"
+    [[ -f /usr/local/bin/n ]] && echo -e "  /usr/local/bin/n（快捷命令）"
     echo ""
-    read -rp "$(echo -e "${RED}确认删除此脚本文件？(y/N):${NC} ")" C
+    read -rp "$(echo -e "${RED}确认删除？(y/N):${NC} ")" C
     if [[ "$C" != "y" && "$C" != "Y" ]]; then info "已取消。"; sleep 1; return; fi
-    rm -f "$SCRIPT_PATH"
-    success "脚本已删除：${SCRIPT_PATH}"
+    rm -f "$NODE_SCRIPT"
+    rm -f /usr/local/bin/n
+    success "脚本及快捷命令已全部删除。"
     info "退出脚本..."
     sleep 1
     exit 0
@@ -932,16 +934,28 @@ delete_script() {
 # 快捷命令安装/卸载（输入 n 调出脚本）
 # ============================================================
 
-install_shortcut() {
-    local script_path
-    script_path=$(realpath "$0" 2>/dev/null || echo "$0")
-    local shortcut="/usr/local/bin/n"
+# 脚本固定安装路径
 
-    # 创建全局命令 n
-    cat > "$shortcut" <<EOF
-#!/bin/bash
-exec bash "${script_path}"
-EOF
+install_shortcut() {
+    local shortcut="/usr/local/bin/n"
+    local src=""
+    src=$(readlink -f /proc/$$/fd/255 2>/dev/null || true)
+    if [[ -z "$src" || "$src" == *"pipe"* || ! -f "$src" ]]; then
+        src=$(realpath "$0" 2>/dev/null || true)
+    fi
+    if [[ -z "$src" || ! -f "$src" ]]; then
+        src=$(readlink -f /proc/$PPID/fd/255 2>/dev/null || true)
+    fi
+    if [[ -f "$src" && "$src" != "$NODE_SCRIPT" ]]; then
+        step "将脚本安装到 ${NODE_SCRIPT}..."
+        cp -f "$src" "$NODE_SCRIPT"
+        chmod +x "$NODE_SCRIPT"
+        success "脚本已安装至 ${NODE_SCRIPT}"
+    elif [[ ! -f "$NODE_SCRIPT" ]]; then
+        warn "无法自动定位脚本，请手动执行："
+        echo -e "  cp <脚本路径> ${NODE_SCRIPT} && chmod +x ${NODE_SCRIPT}"
+    fi
+    printf '#!/bin/bash\nexec bash /usr/local/bin/node-manager\n' > "$shortcut"
     chmod +x "$shortcut"
     success "快捷命令已安装！现在可在任意位置输入 ${BOLD}n${NC} 来调出节点管理脚本。"
 }
@@ -1004,8 +1018,8 @@ main_menu() {
 
 check_root
 
-# 首次运行时自动安装快捷命令 n
-if [[ ! -f /usr/local/bin/n ]]; then
+# 首次运行时自动将脚本安装到固定路径并创建快捷命令 n
+if [[ ! -f "$NODE_SCRIPT" || ! -f /usr/local/bin/n ]]; then
     install_shortcut
 fi
 
