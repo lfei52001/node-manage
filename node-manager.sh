@@ -14,6 +14,10 @@ CYAN='\033[0;36m'
 BOLD='\033[1m'
 NC='\033[0m'
 
+# 脚本固定安装路径及 GitHub 下载地址
+NODE_SCRIPT="/usr/local/bin/node-manager"
+SCRIPT_URL="https://raw.githubusercontent.com/lfei52001/node-manage/refs/heads/main/node-manager.sh"
+
 HY2_CONFIG="/etc/hysteria/config.yaml"
 HY2_BIN="/usr/local/bin/hysteria"
 HY2_SERVICE="hysteria-server"
@@ -939,22 +943,30 @@ delete_script() {
 install_shortcut() {
     local shortcut="/usr/local/bin/n"
     local src=""
+
+    # 检测是否通过管道运行（bash <(curl ...)）
     src=$(readlink -f /proc/$$/fd/255 2>/dev/null || true)
+
     if [[ -z "$src" || "$src" == *"pipe"* || ! -f "$src" ]]; then
-        src=$(realpath "$0" 2>/dev/null || true)
-    fi
-    if [[ -z "$src" || ! -f "$src" ]]; then
-        src=$(readlink -f /proc/$PPID/fd/255 2>/dev/null || true)
-    fi
-    if [[ -f "$src" && "$src" != "$NODE_SCRIPT" ]]; then
+        # 管道方式：从网络重新下载到固定路径
+        step "检测到管道运行，正在下载脚本到 ${NODE_SCRIPT}..."
+        if curl -sSL "$SCRIPT_URL" -o "$NODE_SCRIPT" 2>/dev/null && [[ -s "$NODE_SCRIPT" ]]; then
+            chmod +x "$NODE_SCRIPT"
+            success "脚本已下载并安装至 ${NODE_SCRIPT}"
+        else
+            error "下载失败，请检查网络或手动执行："
+            echo -e "  curl -sSL ${SCRIPT_URL} -o ${NODE_SCRIPT} && chmod +x ${NODE_SCRIPT}"
+            return 1
+        fi
+    elif [[ "$src" != "$NODE_SCRIPT" ]]; then
+        # 普通文件方式：直接复制
         step "将脚本安装到 ${NODE_SCRIPT}..."
         cp -f "$src" "$NODE_SCRIPT"
         chmod +x "$NODE_SCRIPT"
         success "脚本已安装至 ${NODE_SCRIPT}"
-    elif [[ ! -f "$NODE_SCRIPT" ]]; then
-        warn "无法自动定位脚本，请手动执行："
-        echo -e "  cp <脚本路径> ${NODE_SCRIPT} && chmod +x ${NODE_SCRIPT}"
     fi
+
+    # 创建快捷命令（硬编码固定路径，不依赖 $0）
     printf '#!/bin/bash\nexec bash /usr/local/bin/node-manager\n' > "$shortcut"
     chmod +x "$shortcut"
     success "快捷命令已安装！现在可在任意位置输入 ${BOLD}n${NC} 来调出节点管理脚本。"
