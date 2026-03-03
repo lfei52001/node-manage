@@ -262,9 +262,9 @@ hy2_save_info() {
     echo ""
     echo -e "${BOLD}${GREEN}客户端配置 (YAML):${NC}"
     if [[ "$cert_mode" == "self" ]]; then
-        echo -e "${CYAN}server: ${server_addr}:${port}\nauth: ${password}\ntls:\n  sni: ${sni_field}\n  insecure: true\nbandwidth:\n  up: 50 mbps\n  down: 200 mbps${NC}"
+        echo -e "${CYAN}server: ${server_addr}:${port}\nauth: ${password}\ntls:\n  sni: ${sni_field}\n  insecure: true\nbandwidth:\n  up: 200 mbps\n  down: 200 mbps${NC}"
     else
-        echo -e "${CYAN}server: ${server_addr}:${port}\nauth: ${password}\ntls:\n  sni: ${sni_field}\nbandwidth:\n  up: 50 mbps\n  down: 200 mbps${NC}"
+        echo -e "${CYAN}server: ${server_addr}:${port}\nauth: ${password}\ntls:\n  sni: ${sni_field}\nbandwidth:\n  up: 200 mbps\n  down: 200 mbps${NC}"
     fi
     echo ""
     {
@@ -285,7 +285,7 @@ hy2_save_info() {
         echo "  sni: ${sni_field}"
         [[ "$cert_mode" == "self" ]] && echo "  insecure: true"
         echo "bandwidth:"
-        echo "  up: 50 mbps"
+        echo "  up: 200 mbps"
         echo "  down: 200 mbps"
     } > "$HY2_INFO"
     success "配置信息已保存至 ${HY2_INFO}"
