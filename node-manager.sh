@@ -982,10 +982,10 @@ main_menu() {
         echo -e "  ${BOLD}1.${NC} 一键搭建 Hysteria 2 节点"
         echo -e "  ${BOLD}2.${NC} 一键搭建 Reality 节点"
         echo -e "  ${BOLD}3.${NC} 一键搭建 Shadowsocks-Rust 节点"
-        echo -e "  ${BOLD}4.${NC} 退出脚本"
-        echo -e "  ${BOLD}5.${NC} 删除脚本"
-        echo -e "  ${BOLD}6.${NC} 安装快捷命令 n"
-        echo -e "  ${BOLD}7.${NC} 卸载快捷命令 n"
+        echo -e "  ${BOLD}4.${NC} 安装快捷命令 n"
+        echo -e "  ${BOLD}5.${NC} 卸载快捷命令 n"
+        echo -e "  ${BOLD}6.${NC} 退出脚本"
+        echo -e "  ${BOLD}7.${NC} 删除脚本"
         echo ""
         echo -e "${BLUE}════════════════════════════════════════════════${NC}"
         read -rp "$(echo -e "${CYAN}请输入选项 [1-7]:${NC} ")" CHOICE
@@ -993,10 +993,10 @@ main_menu() {
             1) hy2_menu     ;;
             2) reality_menu ;;
             3) ss_menu      ;;
-            4) echo ""; info "已退出脚本，再见！"; echo ""; exit 0 ;;
-            5) delete_script ;;
-            6) install_shortcut; press_enter ;;
-            7) remove_shortcut;  press_enter ;;
+            4) install_shortcut; press_enter ;;
+            5) remove_shortcut;  press_enter ;;
+            6) echo ""; info "已退出脚本，再见！"; echo ""; exit 0 ;;
+            7) delete_script ;;
             *) warn "无效选项，请输入 1-7"; sleep 1 ;;
         esac
     done
