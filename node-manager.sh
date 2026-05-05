@@ -145,39 +145,27 @@ hy2_install_core() {
 
 hy2_setup_cert() {
     local domain="$1" server_addr="$2"
+
+    # 如果没有传入域名，则无法使用 ACME，提示错误
+    if [[ -z "$domain" ]]; then
+        error "使用 ACME 申请 Let's Encrypt 证书必须提供域名！"
+        error "请先使用域名解析到本机 IP 后再搭建 Hysteria 2。"
+        return 1
+    fi
+
     mkdir -p "$HY2_CERT_DIR"
-    if [[ -n "$domain" ]]; then
-        echo ""
-        echo -e "${CYAN}证书申请方式：${NC}"
-        echo -e "  ${BOLD}1.${NC} ACME 自动申请 Let's Encrypt 证书"
-        echo -e "  ${BOLD}2.${NC} 使用自签证书（客户端需跳过证书验证）"
-        read -rp "$(echo -e "${CYAN}请选择 [默认 1]:${NC} ")" CC
-        CC="${CC:-1}"
-        if [[ "$CC" == "1" ]]; then
-            read -rp "$(echo -e "${CYAN}请输入申请证书的邮箱:${NC} ")" ACME_EMAIL
-            [[ -z "$ACME_EMAIL" ]] && ACME_EMAIL="admin@${domain}" && warn "使用默认邮箱: ${ACME_EMAIL}"
-            CERT_MODE="acme"
-            success "将使用 ACME 申请证书，域名: ${domain}"
-            return 0
-        fi
-    fi
-    step "生成自签证书..."
-    local cn="${domain:-$server_addr}"
-    openssl req -x509 -nodes -newkey ec -pkeyopt ec_paramgen_curve:P-256 \
-        -keyout "${HY2_CERT_DIR}/private.key" \
-        -out    "${HY2_CERT_DIR}/cert.crt"   \
-        -days 3650 -subj "/CN=${cn}" 2>/dev/null
-    [[ $? -ne 0 ]] && error "自签证书生成失败！" && return 1
-    chmod 755 "${HY2_CERT_DIR}"
-    chmod 644 "${HY2_CERT_DIR}/cert.crt"
-    if id "hysteria" &>/dev/null; then
-        chown root:hysteria "${HY2_CERT_DIR}/private.key"
-        chmod 640 "${HY2_CERT_DIR}/private.key"
-    else
-        chmod 644 "${HY2_CERT_DIR}/private.key"
-    fi
-    CERT_MODE="self"
-    success "自签证书已生成: ${HY2_CERT_DIR}/"
+
+    echo ""
+    step "将使用 ACME 自动申请 Let's Encrypt 证书"
+    info "申请域名: ${BOLD}${domain}${NC}"
+    info "证书邮箱: ${BOLD}lfei52001@gmail.com${NC}"
+
+    # 固定使用 ACME 模式
+    CERT_MODE="acme"
+    ACME_EMAIL="lfei52001@gmail.com"
+
+    success "ACME 证书申请配置完成（域名: ${domain}）"
+    return 0
 }
 
 hy2_generate_config() {
