@@ -167,8 +167,8 @@ masquerade:
     rewriteHost: true
 
 bandwidth:
-  up: 50 mbps
-  down: 500 mbps
+  up: 1 gbps
+  down: 1 gbps
 EOF
     else
         cat > "$HY2_CONFIG" <<EOF
@@ -189,8 +189,8 @@ masquerade:
     rewriteHost: true
 
 bandwidth:
-  up: 50 mbps
-  down: 500 mbps
+  up: 1 gbps
+  down: 1 gbps
 EOF
     fi
 }
@@ -226,9 +226,9 @@ hy2_save_info() {
     echo ""
     echo -e "${BOLD}${GREEN}客户端配置 (YAML):${NC}"
     if [[ "$cert_mode" == "self" ]]; then
-        echo -e "${CYAN}server: ${server_addr}:${port}\nauth: ${password}\ntls:\n  sni: ${sni_field}\n  insecure: true\nbandwidth:\n  up: 50 mbps\n  down: 500 mbps${NC}"
+        echo -e "${CYAN}server: ${server_addr}:${port}\nauth: ${password}\ntls:\n  sni: ${sni_field}\n  insecure: true\nbandwidth:\n  up: 50 mbps\n  down: 500 mbps\nhop_interval: 30s${NC}"
     else
-        echo -e "${CYAN}server: ${server_addr}:${port}\nauth: ${password}\ntls:\n  sni: ${sni_field}\nbandwidth:\n  up: 50 mbps\n  down: 500 mbps${NC}"
+        echo -e "${CYAN}server: ${server_addr}:${port}\nauth: ${password}\ntls:\n  sni: ${sni_field}\nbandwidth:\n  up: 50 mbps\n  down: 500 mbps\nhop_interval: 30s${NC}"
     fi
     echo ""
     {
@@ -251,6 +251,7 @@ hy2_save_info() {
         echo "bandwidth:"
         echo "  up: 50 mbps"
         echo "  down: 500 mbps"
+        echo "hop_interval: 30s"
     } > "$HY2_INFO"
     success "配置信息已保存至 ${HY2_INFO}"
 }
