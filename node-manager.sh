@@ -101,20 +101,11 @@ choose_server_addr() {
     local addr_var="$2"
     local domain_var="$3"
     echo ""
-    echo -e "${CYAN}客户端连接地址选择：${NC}"
-    echo -e "  ${BOLD}1.${NC} 使用公网 IP  (${server_ip})"
-    echo -e "  ${BOLD}2.${NC} 使用解析到此 VPS 的域名"
-    read -rp "$(echo -e "${CYAN}请选择 [默认 1]:${NC} ")" AC
-    AC="${AC:-1}"
-    if [[ "$AC" == "2" ]]; then
-        local dval=""
-        input_domain "$server_ip" dval
-        eval "$addr_var='$dval'"
-        eval "$domain_var='$dval'"
-    else
-        eval "$addr_var='$server_ip'"
-        eval "$domain_var=''"
-    fi
+    echo -e "${CYAN}请输入解析到此 VPS 的域名：${NC}"
+    local dval=""
+    input_domain "$server_ip" dval
+    eval "$addr_var='$dval'"
+    eval "$domain_var='$dval'"
     info "客户端连接地址: ${BOLD}$(eval echo \$$addr_var)${NC}"
 }
 
@@ -145,27 +136,12 @@ hy2_install_core() {
 
 hy2_setup_cert() {
     local domain="$1" server_addr="$2"
-
-    # 如果没有传入域名，则无法使用 ACME，提示错误
-    if [[ -z "$domain" ]]; then
-        error "使用 ACME 申请 Let's Encrypt 证书必须提供域名！"
-        error "请先使用域名解析到本机 IP 后再搭建 Hysteria 2。"
-        return 1
-    fi
-
     mkdir -p "$HY2_CERT_DIR"
-
-    echo ""
-    step "将使用 ACME 自动申请 Let's Encrypt 证书"
-    info "申请域名: ${BOLD}${domain}${NC}"
-    info "证书邮箱: ${BOLD}lfei52001@gmail.com${NC}"
-
-    # 固定使用 ACME 模式
-    CERT_MODE="acme"
     ACME_EMAIL="lfei52001@gmail.com"
-
-    success "ACME 证书申请配置完成（域名: ${domain}）"
-    return 0
+    CERT_MODE="acme"
+    success "将使用 ACME 自动申请 Let's Encrypt 证书"
+    info "申请邮箱: ${BOLD}${ACME_EMAIL}${NC}"
+    info "申请域名: ${BOLD}${domain}${NC}"
 }
 
 hy2_generate_config() {
