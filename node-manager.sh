@@ -200,10 +200,10 @@ hy2_save_info() {
     local sni_field share_link
     if [[ "$cert_mode" == "self" ]]; then
         sni_field="${domain:-$server_addr}"
-        share_link="hysteria2://${password}@${server_addr}:${port}?insecure=1&sni=${sni_field}#Hysteria2-Node"
+        share_link="hysteria2://${password}@${server_addr}:${port}?insecure=1&sni=${sni_field}&bandwidth_up=50m&bandwidth_down=500m&hop_interval=30#Hysteria2-Node"
     else
         sni_field="$domain"
-        share_link="hysteria2://${password}@${server_addr}:${port}?sni=${sni_field}#Hysteria2-Node"
+        share_link="hysteria2://${password}@${server_addr}:${port}?sni=${sni_field}&bandwidth_up=50m&bandwidth_down=500m&hop_interval=30#Hysteria2-Node"
     fi
     echo ""
     echo -e "${BOLD}${BLUE}╔══════════════════════════════════════════════╗${NC}"
