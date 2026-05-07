@@ -165,10 +165,6 @@ masquerade:
   proxy:
     url: https://news.ycombinator.com/
     rewriteHost: true
-
-bandwidth:
-  up: 1 gbps
-  down: 1 gbps
 EOF
     else
         cat > "$HY2_CONFIG" <<EOF
@@ -187,10 +183,6 @@ masquerade:
   proxy:
     url: https://news.ycombinator.com/
     rewriteHost: true
-
-bandwidth:
-  up: 1 gbps
-  down: 1 gbps
 EOF
     fi
 }
@@ -200,10 +192,10 @@ hy2_save_info() {
     local sni_field share_link
     if [[ "$cert_mode" == "self" ]]; then
         sni_field="${domain:-$server_addr}"
-        share_link="hysteria2://${password}@${server_addr}:${port}?insecure=1&sni=${sni_field}&bandwidth_up=50m&bandwidth_down=500m&hop_interval=30#Hysteria2-Node"
+        share_link="hysteria2://${password}@${server_addr}:${port}?insecure=1&sni=${sni_field}#Hysteria2-Node"
     else
         sni_field="$domain"
-        share_link="hysteria2://${password}@${server_addr}:${port}?sni=${sni_field}&bandwidth_up=50m&bandwidth_down=500m&hop_interval=30#Hysteria2-Node"
+        share_link="hysteria2://${password}@${server_addr}:${port}?sni=${sni_field}#Hysteria2-Node"
     fi
     echo ""
     echo -e "${BOLD}${BLUE}╔══════════════════════════════════════════════╗${NC}"
@@ -226,9 +218,9 @@ hy2_save_info() {
     echo ""
     echo -e "${BOLD}${GREEN}客户端配置 (YAML):${NC}"
     if [[ "$cert_mode" == "self" ]]; then
-        echo -e "${CYAN}server: ${server_addr}:${port}\nauth: ${password}\ntls:\n  sni: ${sni_field}\n  insecure: true\nbandwidth:\n  up: 50 mbps\n  down: 500 mbps\nhop_interval: 30s${NC}"
+        echo -e "${CYAN}server: ${server_addr}:${port}\nauth: ${password}\ntls:\n  sni: ${sni_field}\n  insecure: true${NC}"
     else
-        echo -e "${CYAN}server: ${server_addr}:${port}\nauth: ${password}\ntls:\n  sni: ${sni_field}\nbandwidth:\n  up: 50 mbps\n  down: 500 mbps\nhop_interval: 30s${NC}"
+        echo -e "${CYAN}server: ${server_addr}:${port}\nauth: ${password}\ntls:\n  sni: ${sni_field}${NC}"
     fi
     echo ""
     {
@@ -248,10 +240,6 @@ hy2_save_info() {
         echo "tls:"
         echo "  sni: ${sni_field}"
         [[ "$cert_mode" == "self" ]] && echo "  insecure: true"
-        echo "bandwidth:"
-        echo "  up: 50 mbps"
-        echo "  down: 500 mbps"
-        echo "hop_interval: 30s"
     } > "$HY2_INFO"
     success "配置信息已保存至 ${HY2_INFO}"
 }
